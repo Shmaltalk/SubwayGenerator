@@ -25,8 +25,10 @@ pred isLine[p: Stop->Stop] {
     -- undirected (symmetric)
     ~p in p
 
-    -- connected
-    Stop->Stop in *p
+    let span = p.Stop + Stop.p {
+        -- the span of the line is connected
+        span->span in *p
+    }
     
     -- non-branching (every stop is connected to at most two other
     -- stops, the ones "before" and "after" it)
@@ -40,7 +42,15 @@ pred isLine[p: Stop->Stop] {
 
 pred isSubwaySystem {
     isTown
+
+    -- all route paths are lines
     all r: Route | isLine[r.path]
+
+    -- any two stops are connected by the route paths
+    Stop->Stop in *(Route.path)
+
+    -- no line is contained in another line
+    all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
-run {isSubwaySystem} for exactly 1 Route, 3 Stop
+run {isSubwaySystem} for exactly 2 Route, 4 Stop
