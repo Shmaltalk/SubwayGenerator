@@ -16,11 +16,13 @@ pred isTown {
     -- undirected
     ~(connections.Int) in (connections.Int)
 
-    -- weighted (all stops must have some distance)
-    --TODO consider if the weight needs to be the same for a->b and b->a
-    (some connections) implies Stop.(Stop.connections) in Int
-
-    -- any two stops have the same distance
+    -- TODO weighted (all set of stops must have some positive, non-zero distance between them)
+    (some connections) implies { all dist: Stop.(Stop.connections) | sum[dist] > 0 }
+    
+    -- any two stops have the same distance (in both directions)
+    all s1, s2: Stop | (s1->s2 in (connections.Int)) implies {
+        one (s1.(s2.connections) + s2.(s1.connections))
+    }
 
     -- irreflexive
     no (connections.Int) & iden
@@ -58,7 +60,7 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
-run {isTown} for exactly 2 Stop
+run {isSubwaySystem} for exactly 4 Stop
 
 
 -- test town
@@ -79,10 +81,14 @@ test expect {
         Stop = Stop0 + Stop1
         connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2] + Stop0->Stop0->sing[1]
     } is unsat
-    /*consistentWeight: isTown for {
+    consistentWeight: isTown for {
         Stop = Stop0 + Stop1
-        connections = Stop0->Stop1->2 + Stop1->Stop0->4
-    } is unsat*/ -- ???? yes or no
+        connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[4]
+    } is unsat
+    positiveDistances: isTown for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[-2] + Stop1->Stop0->sing[-2]
+    } is unsat
 }
 
 example noStopsOK is isTown for {
@@ -95,8 +101,8 @@ example oneStopOK is isTown for {
     connections = none->none->none
 }
 
-
 example smallTown is isTown for {
     Stop = Stop0 + Stop1
     connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2]
 }
+
