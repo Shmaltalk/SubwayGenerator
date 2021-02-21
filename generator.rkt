@@ -9,6 +9,13 @@ sig Route {
     path: set Stop->Stop
 }
 
+sig StopPath {
+    stop1: one Stop,
+    stop2: one Stop,
+    route: set path,
+    dist: one Int
+}
+
 pred isTown {
     -- connected
     all s: Stop | Stop in s.*(connections.Int)
@@ -58,6 +65,17 @@ pred isSubwaySystem {
 
     -- no line is contained in another line
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
+}
+
+pred validStopPaths {
+    all p: StopPath {
+        p.stop2 in (p.stop1).^((p.route).Int) -- stop1 can reach stop2 from the given route
+        dist = sing[sum[Stop.(Stop.(p.route)))]]
+    }
+}
+
+pred maxDistance[dist: Int] {
+    all s1: Stop, s2:Stop | some StopPath
 }
 
 run {isSubwaySystem} for exactly 4 Stop
