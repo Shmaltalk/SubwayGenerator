@@ -16,7 +16,7 @@ pred isTown {
     -- undirected
     ~(connections.Int) in (connections.Int)
 
-    -- TODO weighted (all set of stops must have some positive, non-zero distance between them)
+    -- weighted (all pairs of directly connected stops must have some positive, non-zero distance between them)
     (some connections) implies { all dist: Stop.(Stop.connections) | sum[dist] > 0 }
     
     -- any two stops have the same distance (in both directions)
