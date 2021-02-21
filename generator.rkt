@@ -1,9 +1,5 @@
 #lang forge "curiosity_modeling" "clU0kCu1da0mc0rN@gmail.com"
-<<<<<<< Updated upstream
 
-
-=======
->>>>>>> Stashed changes
 
 
 sig Stop {
@@ -16,18 +12,29 @@ sig Route {
 
 pred isTown {
     -- connected
-
+    all s: Stop | Stop in s.*(connections.Int)
+    
     -- undirected
+    ~(connections.Int) in (connections.Int)
 
-    -- weighted
+    -- weighted (all pairs of directly connected stops must have some positive, non-zero distance between them)
+    (some connections) implies { all dist: Stop.(Stop.connections) | sum[dist] > 0 }
+    
+    -- any two stops have the same distance (in both directions)
+    all s1, s2: Stop | (s1->s2 in (connections.Int)) implies {
+        one (s1.(s2.connections) + s2.(s1.connections))
+    }
 
     -- irreflexive
+    no (connections.Int) & iden
 }
+
 
 pred validRoutes {
     -- all route paths must be in the set of stop connections
     Route.path in connections.Int
 }
+
 
 pred isLine[p: Stop->Stop] {
     -- undirected (symmetric)
@@ -61,9 +68,7 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
-<<<<<<< Updated upstream
-run {isSubwaySystem} for exactly 2 Route, 4 Stop
-=======
+
 run {validRoutes and isSubwaySystem} for exactly 4 Stop
 
 
@@ -153,12 +158,6 @@ example validRoutesTest4 is { not validRoutes } for {
 
 
 
-
-
-
-
-
-
 -- test isLine
 
 -- empty path (not a line, since lines must have at least two stops)
@@ -230,4 +229,4 @@ example isLineTest9 is { not isLine[Route.path] } for {
     path = Route0->(Stop0 + Stop1)->(Stop0 + Stop1) +
            Route0->Stop2->Stop3 + Route0->Stop3->Stop2
 }
->>>>>>> Stashed changes
+
