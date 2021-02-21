@@ -1,6 +1,4 @@
-#lang forge "curiosity_modeling" "clU0kCu1da0mc0rN@gmail.com"
-
-
+#lang forge "curiosity_modeling" "075knkr5cf0ofmn1@gmail.com"
 
 
 sig Stop {
@@ -13,12 +11,21 @@ sig Route {
 
 pred isTown {
     -- connected
-
+    all s: Stop | Stop in s.*(connections.Int)
+    
     -- undirected
+    ~(connections.Int) in (connections.Int)
 
-    -- weighted
+    -- weighted (all pairs of directly connected stops must have some positive, non-zero distance between them)
+    (some connections) implies { all dist: Stop.(Stop.connections) | sum[dist] > 0 }
+    
+    -- any two stops have the same distance (in both directions)
+    all s1, s2: Stop | (s1->s2 in (connections.Int)) implies {
+        one (s1.(s2.connections) + s2.(s1.connections))
+    }
 
     -- irreflexive
+    no (connections.Int) & iden
 }
 
 pred isLine[p: Stop->Stop] {
@@ -53,4 +60,49 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
-run {isSubwaySystem} for exactly 2 Route, 4 Stop
+run {isSubwaySystem} for exactly 4 Stop
+
+
+-- test town
+test expect {
+    isConnected: isTown for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2]
+    } is unsat
+    isUndirected: isTown for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[2] + Stop1->Stop2->sing[4]
+    } is unsat
+    isWeighted: isTown for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->none + Stop1->Stop0->none
+    } is unsat
+    isIrreflexive: isTown for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2] + Stop0->Stop0->sing[1]
+    } is unsat
+    consistentWeight: isTown for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[4]
+    } is unsat
+    positiveDistances: isTown for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[-2] + Stop1->Stop0->sing[-2]
+    } is unsat
+}
+
+example noStopsOK is isTown for {
+    Stop = none
+    connections = none->none->none
+}
+
+example oneStopOK is isTown for {
+    Stop = Stop0
+    connections = none->none->none
+}
+
+example smallTown is isTown for {
+    Stop = Stop0 + Stop1
+    connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2]
+}
+
