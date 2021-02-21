@@ -1,6 +1,7 @@
 #lang forge "curiosity_modeling" "075knkr5cf0ofmn1@gmail.com"
 
 
+
 sig Stop {
     connections: set Stop->Int
 }
@@ -12,7 +13,7 @@ sig Route {
 sig StopPath {
     stop1: one Stop,
     stop2: one Stop,
-    route: set path,
+    route: set Stop->Stop,
     dist: one Int
 }
 
@@ -35,6 +36,13 @@ pred isTown {
     no (connections.Int) & iden
 }
 
+
+pred validRoutes {
+    -- all route paths must be in the set of stop connections
+    Route.path in connections.Int
+}
+
+
 pred isLine[p: Stop->Stop] {
     -- undirected (symmetric)
     ~p in p
@@ -48,8 +56,8 @@ pred isLine[p: Stop->Stop] {
     -- stops, the ones "before" and "after" it)
     all s: Stop | #s.p <= 2
     
-    -- line should have two endpoints, each of which will be connected to only
-    -- one other stop
+    -- line should have two distinct endpoints, each of which will be connected
+    -- to only one other stop
     -- (note: this also ensures that the line contains at least 2 stops)
     #{s: Stop | #s.p = 1} = 2
 }
@@ -68,19 +76,30 @@ pred isSubwaySystem {
 }
 
 pred validStopPaths {
-    all p: StopPath {
-        p.stop2 in (p.stop1).^((p.route).Int) -- stop1 can reach stop2 from the given route
-        dist = sing[sum[Stop.(Stop.(p.route)))]]
-    }
-}
+    all r: StopPath.route | r in Route.path -- ensure all routes in StopPath are on subway lines
+    /*all p: StopPath {
+        p.stop2 in (p.stop1).^(p.route) -- stop1 can reach stop2 from the given route
+        all r: p.route | { -- r = Stop->Stop
+            start = r.Stop
+            end = Stop.r
+            dist = (Stop.r).((r.Stop).connections)
 
+
+
+            let d = stop2.(stop1.connections) { -- connections: Stop1->Stop2->Int
+                 dist = sing[sum[]]
+            }
+        }
+    }*/
+}
+/*
 pred maxDistance[dist: Int] {
-    all s1: Stop, s2:Stop | some StopPath
+    --all s1: Stop, s2:Stop | some StopPath
 }
+*/
+run {validRoutes and isSubwaySystem and validStopPaths} for exactly 4 Stop
 
-run {isSubwaySystem} for exactly 4 Stop
-
-
+/*
 -- test town
 test expect {
     isConnected: isTown for {
@@ -124,3 +143,119 @@ example smallTown is isTown for {
     connections = Stop0->Stop1->sing[2] + Stop1->Stop0->sing[2]
 }
 
+
+
+
+
+
+-- test validRoutes
+
+-- no stops, empty route
+example validRoutesTest1 is { validRoutes } for {
+    Stop = none
+    connections = none
+    Route = Route0
+    path = none
+}
+
+-- one stop, no connections
+example validRoutesTest2 is { not validRoutes } for {
+    Stop = Stop0
+    connections = none
+    Route = Route0
+    path = Route0->Stop0->Stop0
+}
+
+-- two stops, empty route
+example validRoutesTest3 is { validRoutes } for {
+    Stop = Stop0 + Stop1
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[2]
+    Route = Route0
+    path = none
+}
+
+-- Route0 is valid, Route1 is not
+example validRoutesTest4 is { not validRoutes } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + Stop0->Stop2->sing[3]
+    Route = Route0 + Route1
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route1->Stop2->Stop1
+}
+
+
+
+
+
+-- test isLine
+
+-- empty path (not a line, since lines must have at least two stops)
+example isLineTest1 is { not isLine[Route.path] } for {
+    Route = Route0
+    path = none
+}
+
+-- single-stop path (not a line, since lines must have at least two stops)
+example isLineTest2 is { not isLine[Route.path] } for {
+    Stop = Stop0
+    Route = Route0
+    path = Route0->Stop0->Stop0
+}
+
+-- two-stop line
+example isLineTest3 is { isLine[Route.path] } for {
+    Stop = Stop0 + Stop1
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0
+}
+
+-- many-stop line, doesn't span all the stops which is fine
+example isLineTest4 is { isLine[Route.path] } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3 + Stop4
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 +
+           Route0->Stop1->Stop2 + Route0->Stop2->Stop1 +
+           Route0->Stop2->Stop3 + Route0->Stop3->Stop2
+}
+
+-- non-line (asymmetric)
+example isLineTest5 is { not isLine[Route.path] } for {
+    Stop = Stop0 + Stop1
+    Route = Route0
+    path = Route0->Stop0->Stop1
+}
+
+-- non-line (branching)
+example isLineTest6 is { not isLine[Route.path] } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3
+    Route = Route0
+    path = Route0->Stop0->(Stop1 + Stop2 + Stop3) + Route0->(Stop1 + Stop2 + Stop3)->Stop0
+}
+
+-- non-line (two-way circular loop, so has no endpoints)
+example isLineTest7 is { not isLine[Route.path] } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 +
+           Route0->Stop1->Stop2 + Route0->Stop2->Stop1 +
+           Route0->Stop2->Stop3 + Route0->Stop3->Stop2 +
+           Route0->Stop3->Stop0 + Route0->Stop0->Stop3
+}
+
+-- non-line (disconnected, too many endpoints)
+example isLineTest8 is { not isLine[Route.path] } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3 + Stop4
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 +
+           Route0->Stop1->Stop2 + Route0->Stop2->Stop1 +
+           Route0->Stop3->Stop4 + Route0->Stop4->Stop3
+}
+
+-- non-line (correct number of endpoints, but disconnected)
+example isLineTest9 is { not isLine[Route.path] } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3
+    Route = Route0
+    path = Route0->(Stop0 + Stop1)->(Stop0 + Stop1) +
+           Route0->Stop2->Stop3 + Route0->Stop3->Stop2
+}
+
+*/
