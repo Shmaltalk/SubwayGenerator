@@ -1,4 +1,4 @@
-#lang forge "curiosity_modeling" "075knkr5cf0ofmn1@gmail.com"
+#lang forge "curiosity_modeling" "clU0kCu1da0mc0rN@gmail.com"
 
 
 
@@ -75,22 +75,21 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
-inst duplicates {
-    A = A0 + A1
-    time = A0 -> 1 + A1 -> 1
-}
-
 pred validStopPaths {
+    some StopPath -- just for visualization purposes
+    all n: Stop.(Stop.connections) | sum[n] <= 5 -- to prevent integer overflow
+
     all s: StopPath | {
         some s.route
         s.route in Route.path -- ensure all routes in StopPath are on subway lines
         s.stop2 in (s.stop1).^(s.route) -- stop1 can reach stop2 from the given route
         
-        /*//dist is the total distance of the routes
-        sum[s.dist] = sum[
-            Stop.(t.connections) | t->(t.connections).Int in s.route
-            //Stop.(Stop.d) | d.Int in s.route -- sum the integers of connections in the StopPath's route
-        }*/
+        // dist is the total distance of all connections in the route
+        sum[s.dist] = {
+            sum start: s.route.Stop | sum end: start.(s.route) | {
+                sum[end.(start.connections)]
+            }
+        }
     }
 }
 
@@ -98,7 +97,7 @@ pred maxDistance[dist: Int] {
     all s1: Stop, s2:(Stop - s1) | some sum[StopPath.dist] <= 15
 }
 
-run {validRoutes and isSubwaySystem and validStopPaths} for exactly 4 Stop
+run {validRoutes and isSubwaySystem and validStopPaths} for exactly 4 Stop, 6 Int
 
 /*
 -- test town
