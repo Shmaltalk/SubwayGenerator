@@ -29,13 +29,6 @@ pred isTown {
     no (connections.Int) & iden
 }
 
-
-pred validRoutes {
-    -- all route paths must be in the set of stop connections
-    Route.path in connections.Int
-}
-
-
 pred isLine[p: Stop->Stop] {
     -- undirected (symmetric)
     ~p in p
@@ -55,8 +48,14 @@ pred isLine[p: Stop->Stop] {
     #{s: Stop | #s.p = 1} = 2
 }
 
+pred validRoutes {
+    -- all route paths must be in the set of stop connections
+    Route.path in connections.Int
+}
+
 pred isSubwaySystem {
     isTown
+    validRoutes
 
     -- all route paths are lines
     all r: Route | isLine[r.path]
@@ -69,9 +68,12 @@ pred isSubwaySystem {
 }
 
 
-run {validRoutes and isSubwaySystem} for exactly 4 Stop
+run {isSubwaySystem} for exactly 4 Stop
 
 
+
+
+/*
 -- test town
 test expect {
     isConnected: isTown for {
@@ -158,6 +160,7 @@ example validRoutesTest4 is { not validRoutes } for {
 
 
 
+
 -- test isLine
 
 -- empty path (not a line, since lines must have at least two stops)
@@ -230,3 +233,134 @@ example isLineTest9 is { not isLine[Route.path] } for {
            Route0->Stop2->Stop3 + Route0->Stop3->Stop2
 }
 
+
+
+
+
+-- test isSubwaySystem
+
+-- empty town with no routes works
+example isSubwaySystemTest1 is { isSubwaySystem } for {
+    Stop = none
+    connections = none
+    Route = none
+    path = none
+}
+
+-- one-stop town with no routes works
+example isSubwaySystemTest2 is { isSubwaySystem } for {
+    Stop = Stop0
+    connections = none
+    Route = none
+    path = none
+}
+
+-- non-example (has an empty route, which we don't consider a line)
+example isSubwaySystemTest3 is { not isSubwaySystem } for {
+    Stop = Stop0
+    connections = none
+    Route = Route0
+    path = none
+}
+
+-- non-example (stops not connected by the route paths)
+example isSubwaySystemTest4 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1
+    connections = (Stop0->Stop1 + Stop1->Stop0)->sing[1]
+    Route = none
+    path = none
+}
+
+-- two-stop town with one line
+example isSubwaySystemTest5 is { isSubwaySystem } for {
+    Stop = Stop0 + Stop1
+    connections = (Stop0->Stop1 + Stop1->Stop0)->sing[1]
+    Route = Route0
+    path = Route0->(Stop0->Stop1 + Stop1->Stop0)
+}
+
+-- non-example (route is not a line)
+example isSubwaySystemTest6 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1
+    connections = (Stop0->Stop1 + Stop1->Stop0)->sing[1]
+    Route = Route0
+    path = Route0->Stop0->Stop1
+}
+
+-- three-stop town with one line
+example isSubwaySystemTest7 is { isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)->sing[1]
+    Route = Route0
+    path = Route0->(Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)
+}
+
+-- three-stop town with two lines
+example isSubwaySystemTest8 is { isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)->sing[1]
+    Route = Route0 + Route1
+    path = Route0->(Stop0->Stop1 + Stop1->Stop0) +
+           Route1->(Stop0->Stop2 + Stop2->Stop0)
+}
+
+-- non-example (one route is contained in another)
+example isSubwaySystemTest9 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)->sing[1]
+    Route = Route0 + Route1
+    path = Route0->(Stop0->Stop1 + Stop1->Stop0) +
+           Route1->(Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)
+}
+
+-- non-example (fails validRoutes)
+example isSubwaySystemTest10 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) + (Stop1 + Stop2)->Stop0)->sing[1]
+    Route = Route0
+    path = Route0->(Stop1->(Stop0 + Stop2) + (Stop0 + Stop2)->Stop1)
+}
+
+-- non-example (route paths hit all nodes, but union of all route paths is not
+-- connected)
+example isSubwaySystemTest11 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3
+    connections = ((Stop0 + Stop1)->(Stop2 + Stop3) +
+                   (Stop2 + Stop3)->(Stop0 + Stop1))->sing[1]
+    Route = Route0 + Route1
+    path = Route0->(Stop0->Stop2 + Stop2->Stop0) +
+           Route1->(Stop1->Stop3 + Stop3->Stop1)
+}
+
+-- positive example with overlapping routes
+example isSubwaySystemTest12 is { isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2 + Stop3
+    connections = ((Stop0 + Stop1)->(Stop2 + Stop3) +
+                   (Stop2 + Stop3)->(Stop0 + Stop1))->sing[1]
+    Route = Route0 + Route1
+    path = Route0->(Stop0->(Stop2 + Stop3) + (Stop2 + Stop3)->Stop0) +
+           Route1->(Stop2->(Stop0 + Stop1) + (Stop0 + Stop1)->Stop2)
+}
+
+-- three-stop fully-connected positive example
+example isSubwaySystemTest13 is { isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) +
+                   Stop1->(Stop0 + Stop2) + Stop2->(Stop0 + Stop1))->sing[1]
+    Route = Route0 + Route1 + Route2
+    path = Route0->(Stop0->Stop1 + Stop1->Stop0) +
+           Route1->(Stop0->Stop2 + Stop2->Stop0) +
+           Route2->(Stop1->Stop2 + Stop2->Stop1)
+}
+
+-- non-example: contains routes that are not lines (although the union of all
+-- routes would be a line)
+example isSubwaySystemTest14 is { not isSubwaySystem } for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = (Stop0->(Stop1 + Stop2) +
+                   Stop1->(Stop0 + Stop2) + Stop2->(Stop0 + Stop1))->sing[1]
+    Route = Route0 + Route1 + Route2
+    path = Route0->(Stop0->Stop1 + Stop1->Stop0) +
+           Route1->(Stop0->Stop2) + Route2->(Stop2->Stop0)
+}
+*/
