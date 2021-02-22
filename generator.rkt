@@ -93,18 +93,26 @@ pred validStopPaths {
     }
 }
 
-pred maxDistance[max: Int] {
-    all s1: Stop, s2:(Stop - s1) | { 
+pred maxDistance[maxDist: Int] {
+    all s1: Stop, s2: (Stop - s1) | { 
         some sp: StopPath | {
-            sp.stop1 = s1
-            sp.stop2 = s2
-            sum[sp.dist] <= sum[max]
+            sp.stop1 in s1
+            sp.stop2 in s2
+            sum[sp.dist] <= sum[maxDist]
         }
     }
 }
+// run {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[6]]} for {
+//     Stop = Stop0 + Stop1 + Stop2
+//     connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+//                   Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
 
-run {validRoutes and isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 3 Stop, 8 Int -- 8 just to make it a round byte
+//     Route = Route0
+//     path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1 + Route0->Stop1->Stop2
 
+// }
+run {validRoutes and isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 7 Stop, 8 Int, 45 StopPath -- 8 just to make it a round byte
+//  and maxDistance[sing[15]]} 
 /*
 -- test town
 test expect {
@@ -379,5 +387,17 @@ example countDuplicateDistances2 is {validStopPaths and isTown} for {
     dist = SP0->sing[2]
 }
 
+
+
 -- test all together
-*/
+
+test expect{
+    temp: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                      Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1
+    } is sat
+}*/
