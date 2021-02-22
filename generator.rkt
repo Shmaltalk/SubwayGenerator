@@ -75,22 +75,25 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
+inst duplicates {
+    A = A0 + A1
+    time = A0 -> 1 + A1 -> 1
+}
+
 pred validStopPaths {
-    all r: StopPath.route | r in Route.path -- ensure all routes in StopPath are on subway lines
-    /*all p: StopPath {
-        p.stop2 in (p.stop1).^(p.route) -- stop1 can reach stop2 from the given route
-        all r: p.route | { -- r = Stop->Stop
-            start = r.Stop
-            end = Stop.r
-            dist = (Stop.r).((r.Stop).connections)
-
-
-
-            let d = stop2.(stop1.connections) { -- connections: Stop1->Stop2->Int
-                 dist = sing[sum[]]
-            }
-        }
-    }*/
+    all s: StopPath | {
+        some s.route
+        s.route in Route.path -- ensure all routes in StopPath are on subway lines
+        s.stop2 in (s.stop1).^(s.route) -- stop1 can reach stop2 from the given route
+       
+sum[s.dist] = sum a: A | {sum[a.time]}
+        
+        /*//dist is the total distance of the routes
+        sum[s.dist] = sum[
+            Stop.(t.connections) | t->(t.connections).Int in s.route
+            //Stop.(Stop.d) | d.Int in s.route -- sum the integers of connections in the StopPath's route
+        }*/
+    }
 }
 /*
 pred maxDistance[dist: Int] {
