@@ -85,8 +85,6 @@ pred validStopPaths {
         some s.route
         s.route in Route.path -- ensure all routes in StopPath are on subway lines
         s.stop2 in (s.stop1).^(s.route) -- stop1 can reach stop2 from the given route
-       
-sum[s.dist] = sum a: A | {sum[a.time]}
         
         /*//dist is the total distance of the routes
         sum[s.dist] = sum[
@@ -95,11 +93,11 @@ sum[s.dist] = sum a: A | {sum[a.time]}
         }*/
     }
 }
-/*
+
 pred maxDistance[dist: Int] {
-    --all s1: Stop, s2:Stop | some StopPath
+    all s1: Stop, s2:(Stop - s1) | some sum[StopPath.dist] <= 15
 }
-*/
+
 run {validRoutes and isSubwaySystem and validStopPaths} for exactly 4 Stop
 
 /*
