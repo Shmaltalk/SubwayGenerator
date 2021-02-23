@@ -103,17 +103,12 @@ pred maxDistance[maxDist: Int] {
         }
     }
 }
-// run {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[6]]} for {
-//     Stop = Stop0 + Stop1 + Stop2
-//     connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
-//                   Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
 
-//     Route = Route0
-//     path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1 + Route0->Stop1->Stop2
+run {isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 7 Stop, 8 Int, 45 StopPath -- 8 just to make it a round byte
 
-// }
-run {validRoutes and isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 7 Stop, 8 Int, 45 StopPath -- 8 just to make it a round byte
-//  and maxDistance[sing[15]]} 
+
+
+
 
 /*
 -- test town
