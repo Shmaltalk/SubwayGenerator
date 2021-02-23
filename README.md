@@ -25,6 +25,10 @@ Properties of a subway system
 - no line should be contained in another line, since such a line would be useless (however, we do allow lines to overlap, since you could have two subway lines whose paths run side by side for a while)
 - must take less than a given x time to get between any two stops
 
+## tests and run statements
+
+We wrote tests for each predicate, as well as some final tests putting all the predicates together. We also have a run statement which creates possible subway maps for a town with 4 stops; the distance can be adjusted and other constraints can be added to produce different maps. (When viewing in Sterling, we recommend using Show as Attribute for all fields to get rid of clutter.)
+
 
 ## sig and pred specifics
 Stop
