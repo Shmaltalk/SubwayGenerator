@@ -27,7 +27,9 @@ Properties of a subway system
 
 ## tests and run statements
 
-We wrote tests for each predicate, as well as some final tests putting all the predicates together. We also have a run statement which creates possible subway maps for a town with 4 stops; the distance can be adjusted and other constraints can be added to produce different maps. (When viewing in Sterling, we recommend using Show as Attribute for all fields to get rid of clutter.)
+Please see the code for descriptions of individual tests. Overall, we tested each individual predicate with positive (should pass) and negative (should fail) tests, then included some examples to confirm the system works as a whole.
+
+We also have a run statement which creates possible subway maps for a town with 4 stops; the distance can be adjusted and other constraints can be added to produce different maps. (When viewing in Sterling, we recommend using Show as Attribute for all fields to get rid of clutter.)
 
 
 ## sig and pred specifics
@@ -69,7 +71,3 @@ validStopPaths
 maxDistance
 - Actually places the constraint that all stops must be within a certain travel distance
 - Checks that all pairs of stops have a valid StopPath with a distance less than the given maximum distance
-
-## On Testing
-
-Please see the code for descriptions of individual tests. Overall, we tested each individual predicate with positive (should pass) and negative (should fail) tests, then included some examples to confirm the system works as a whole.
