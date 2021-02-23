@@ -118,6 +118,11 @@ run {isSubwaySystem and validStopPaths and isTown and maxDistance[sing[1]]} for 
 }//exactly 4 Stop, 8 Int, 20 StopPath -- 8 just to make it a round byte
 
 
+
+
+
+/*
+
 -- test town
 test expect {
     isConnected: isTown for {
@@ -528,6 +533,7 @@ example countDuplicateDistances2 is {validStopPaths and isTown} for {
     dist = SP0->sing[2]
 }
 
+
 -- test all together
 
 test expect {
@@ -579,17 +585,18 @@ example singleStopTown is {validStopPaths and isTown and isSubwaySystem and maxD
     route = none->none->none
     dist = none
 }
+*/
 
 test expect {
-  smallTown: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 10 StopPath for {
+  smallTown: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 8 Int for {
       Stop = Stop0 + Stop1 + Stop2
       connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
                     Stop1->Stop2->sing[2] + Stop2->Stop1->sing[2] +
                     Stop0->Stop2->sing[3] + Stop2->Stop0->sing[3]
 
-      Route = Route0
-      path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop1->Stop2 + Route0->Stop2->Stop1
-
+      Route = Route0 + Route1
+      path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop1->Stop2 + Route0->Stop2->Stop1 + Route1->Stop0->Stop2 + Route1->Stop2->Stop0
+      
       StopPath = SP0 + SP1 + SP2 + SP3 + SP4 + SP5
       stop1 = SP0->Stop0 + SP1->Stop0 + SP2->Stop1 + SP3->Stop1 + SP4->Stop2 + SP5->Stop2
       stop2 = SP0->Stop1 + SP1->Stop2 + SP2->Stop0 + SP3->Stop2 + SP4->Stop0 + SP5->Stop1
