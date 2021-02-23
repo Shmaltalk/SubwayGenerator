@@ -111,6 +111,10 @@ run {isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 4 
 
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> e9f8d8c10338b58a65ab734aff028129264f6e67
 -- test town
 test expect {
     isConnected: isTown for {
@@ -539,6 +543,28 @@ test expect {
     -- one of allowable distance and one too long
     somePathTooLong: {isTown and maxDistance[sing[2]]} for 10 StopPath for {
         Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5] + Stop0->Stop2->sing[1] + Stop2->Stop0->sing[1]
+    } is unsat
+}
+
+-- maxDistance
+test expect {
+    distTooFar: {isTown and maxDistance[sing[2]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1
+        connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5]
+    } is unsat
+    missingStopPath: {isTown and maxDistance[sing[5]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1]
+
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop1
+    } is unsat
+
+    -- one of allowable distance and one too long
+    somePathTooLong: {isTown and maxDistance[sing[2]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1 -> Stop2
         connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5] + Stop0->Stop2->sing[1] + Stop2->Stop0->sing[1]
     } is unsat
 }
