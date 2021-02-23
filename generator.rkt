@@ -104,24 +104,13 @@ pred maxDistance[maxDist: Int] {
     }
 }
 
-run {isSubwaySystem and validStopPaths and isTown and maxDistance[sing[1]]} for {
-    Stop = Stop0 + Stop1
-    connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5]
-
-    Route = Route0
-    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0
-
-    StopPath = SP0 + SP1
-    stop1 = SP0->Stop0 + SP1->Stop1
-    stop2 = SP0->Stop1 + SP1->Stop0
-    route = SP0->Stop0->Stop1 + SP1->Stop1->Stop0
-}//exactly 4 Stop, 8 Int, 20 StopPath -- 8 just to make it a round byte
+run {isSubwaySystem and validStopPaths and isTown and maxDistance[sing[1]]} for exactly 4 Stop, 8 Int, 20 StopPath -- 8 just to make it a round byte
 
 
 
 
 
-/*
+
 
 -- test town
 test expect {
@@ -585,7 +574,7 @@ example singleStopTown is {validStopPaths and isTown and isSubwaySystem and maxD
     route = none->none->none
     dist = none
 }
-*/
+
 
 test expect {
   smallTown: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 8 Int for {
