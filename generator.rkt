@@ -1,4 +1,4 @@
-#lang forge "curiosity_modeling" "clU0kCu1da0mc0rN@gmail.com"
+#lang forge --"curiosity_modeling" "075knkr5cf0ofmn1@gmail.com"
 
 
 
@@ -8,6 +8,13 @@ sig Stop {
 
 sig Route {
     path: set Stop->Stop
+}
+
+sig StopPath {
+    stop1: one Stop,
+    stop2: one Stop,
+    route: set Stop->Stop,
+    dist: one Int
 }
 
 pred isTown {
@@ -67,11 +74,46 @@ pred isSubwaySystem {
     all r1, r2: Route | r1.path in r2.path implies r1 = r2
 }
 
+pred validStopPaths {
+    --some StopPath -- just for visualization purposes
+    all n: Stop.(Stop.connections) | sum[n] <= 5 -- to prevent integer overflow
 
-run {isSubwaySystem} for exactly 4 Stop
+    all s: StopPath | {
+        some s.route
+        s.route in Route.path -- ensure all routes in StopPath are on subway lines
+        s.stop2 in (s.stop1).^(s.route) -- stop1 can reach stop2 from the given route
+        
+        // dist is the total distance of all connections in the route
+        sum[s.dist] = {
+            sum start: s.route.Stop | sum end: start.(s.route) | {
+                sum[end.(start.connections)]
+            }
+        }
+    }
+}
 
 
 
+pred maxDistance[maxDist: Int] {
+    all s1: Stop, s2: (Stop - s1) | { 
+        some sp: StopPath | {
+            sp.stop1 in s1
+            sp.stop2 in s2
+            sum[sp.dist] <= sum[maxDist]
+        }
+    }
+}
+// run {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[6]]} for {
+//     Stop = Stop0 + Stop1 + Stop2
+//     connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+//                   Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+
+//     Route = Route0
+//     path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1 + Route0->Stop1->Stop2
+
+// }
+run {validRoutes and isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 7 Stop, 8 Int, 45 StopPath -- 8 just to make it a round byte
+//  and maxDistance[sing[15]]} 
 
 /*
 -- test town
@@ -237,6 +279,7 @@ example isLineTest9 is { not isLine[Route.path] } for {
 
 
 
+
 -- test isSubwaySystem
 
 -- empty town with no routes works
@@ -363,4 +406,137 @@ example isSubwaySystemTest14 is { not isSubwaySystem } for {
     path = Route0->(Stop0->Stop1 + Stop1->Stop0) +
            Route1->(Stop0->Stop2) + Route2->(Stop2->Stop0)
 }
-*/
+
+
+
+
+
+
+-- test validStopPaths
+
+test expect {
+    pathNotInSubwayRoute: {validStopPaths and isTown} for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                      Stop1->Stop2->sing[2] + Stop2->Stop1->sing[2]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1
+        
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop2
+        route = SP0->Stop0->Stop1 + SP0->Stop1->Stop2
+    } is unsat
+    stop2Unreachable: {validStopPaths and isTown} for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                      Stop1->Stop2->sing[2] + Stop2->Stop1->sing[2]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1
+        
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop2
+        route = SP0->Stop0->Stop1
+    } is unsat
+    backwardsPath: {validStopPaths and isTown} for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1
+        
+        StopPath = SP0
+        stop1 = SP0->Stop1
+        stop2 = SP0->Stop0
+        route = SP0->Stop1->Stop0
+    } is unsat
+    wrongDistance: {validStopPaths and isTown} for {
+        Stop = Stop0 + Stop1
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1
+        
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop1
+        route = SP0->Stop0->Stop1
+        dist = SP0->sing[5]
+    } is unsat
+    countDuplicateDistances: {validStopPaths and isTown} for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                      Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2
+        
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop2
+        route = SP0->Stop0->Stop1 + SP0->Stop1->Stop2
+        dist = SP0->sing[1]
+    } is unsat
+}
+
+example smallStopPath is {validStopPaths and isTown} for {
+    Stop = Stop0 + Stop1
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1]
+
+    Route = Route0
+    path = Route0->Stop0->Stop1
+    
+    StopPath = SP0
+    stop1 = SP0->Stop0
+    stop2 = SP0->Stop1
+    route = SP0->Stop0->Stop1
+    dist = SP0->sing[1]
+}
+
+example extraInfoStopPath is {validStopPaths and isTown} for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                  Stop1->Stop2->sing[2] + Stop2->Stop1->sing[2]
+
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2 + Route0->Stop2->Stop1
+    
+    StopPath = SP0
+    stop1 = SP0->Stop0
+    stop2 = SP0->Stop1
+    route = SP0->Stop0->Stop1 + SP0->Stop2->Stop1
+    dist = SP0->sing[3]
+}
+
+example countDuplicateDistances2 is {validStopPaths and isTown} for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                  Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2
+    
+    StopPath = SP0
+    stop1 = SP0->Stop0
+    stop2 = SP0->Stop2
+    route = SP0->Stop0->Stop1 + SP0->Stop1->Stop2
+    dist = SP0->sing[2]
+}
+
+
+
+-- test all together
+
+test expect{
+    temp: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for {
+        Stop = Stop0 + Stop1 + Stop2
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                      Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+
+        Route = Route0
+        path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1
+    } is sat
+}*/

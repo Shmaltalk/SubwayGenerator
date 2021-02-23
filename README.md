@@ -24,3 +24,17 @@ A subway system must...
 - be connected
 - have all its lines be distinct
 - take less than a given x time to get between any two stops
+
+
+## sig and pred specifics
+Stop
+- This defines 
+Route
+StopPath
+
+isTown
+validRoutes
+isLine
+isSubwaySystem
+validStopPaths
+maxDistance
