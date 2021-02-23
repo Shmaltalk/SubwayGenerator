@@ -6,10 +6,10 @@ Given an undirected, weighted graph representing all subway stops in a city, thi
 
 ## Constraints/Design Choices
 A town map is a graph that represents all possible connections between subway stops and the time it would take to travel between them. It must be...
-- connected
-- undirected
-- weighted
-- irreflexive
+- connected: Any two stops in a town should be reachable from each other
+- undirected: You should be able to travel identically to and from any two stops in the same amount of time. While this may not be true when traveling on streets, since we want to build a subway system travel would be underground and unaffected by things like buildings or one way streets.
+- weighted: It should take some positive, nonzero amount of time to travel between any two subway stops
+- irreflexive: There should not be a direct path from a subway stop to itself with a non-zero travel time (staying still could be interpreted as "traveling from a stop to itself", but since this would take 0 travel time we do not include it in the model)
 
 A generated subway system is a set of subway lines, each of which stops at at least 2 stops. Passengers can switch between two lines at stops where they both stop. 
 
