@@ -107,14 +107,6 @@ pred maxDistance[maxDist: Int] {
 run {isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 4 Stop, 8 Int, 20 StopPath -- 8 just to make it a round byte
 
 
-
-
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> e9f8d8c10338b58a65ab734aff028129264f6e67
 -- test town
 test expect {
     isConnected: isTown for {
