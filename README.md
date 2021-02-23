@@ -2,7 +2,7 @@
 
 
 ## Description of Project
-Given an undirected, weighted graph representing all subway stops in a city, this model generates possible subway maps such that a passenger would be able to get from any arbitrary stop to any other arbitrary stop in at most some given x time. The weights of the graph represent a theoretical time that traveling between two stops would take.
+Suppose you are planning a subway system to be built in a city. Given a set representing all locations at which you want the subway to stop, as well as an undirected, weighted graph representing the possible connections that could be built between them, this model generates possible subway maps such that a passenger would be able to get from any arbitrary stop to any other arbitrary stop in at most some given x time. The weights of the graph represent a theoretical time that traveling between two stops would take.
 
 ## Constraints/Design Choices
 A town map is a graph that represents all possible connections between subway stops and the time it would take to travel between them. It must be...
@@ -16,14 +16,14 @@ A generated subway system is a set of subway lines, each of which stops at at le
 Properties of lines
 - undirected (symmetric): the trains go back and forth on a single path, so if the subway goes from a stop s1 to a stop s2, then it also goes from s2 to s1.
 - connected: any two stops on the line should be reachable from each other.
-- not branching: each stop should be directly connected to at most 2 other stops: the one before it and the one after it.
-- has endpoints: there should be exactly two stops (the endpoints of the line) that are each directly connected to only one other stop.
+- has endpoints: there should be exactly two stops (the endpoints of the line) that are each directly connected to only one other stop. (Even though it's possible in the real world to have a subway line whose path is a loop, i.e. no endpoints, we chose to exclude this from our model. This constraint also rules out trivial subway "lines" that are empty or only contain a single stop.)
+- not branching: each stop should be directly connected to at most 2 other stops, the one before it and the one after it. (Again, branching is possible in a real-world subway line, but we chose to exclude it for simplicity.)
 
-A subway system must...
-- cover all subway stops in the map
-- be connected
-- have all its lines be distinct
-- take less than a given x time to get between any two stops
+Properties of a subway system
+- must cover all subway stops in the map
+- must be connected
+- no line should be contained in another line, since such a line would be useless (however, we do allow lines to overlap, since you could have two subway lines whose paths run side by side for a while)
+- must take less than a given x time to get between any two stops
 
 
 ## sig and pred specifics
@@ -40,12 +40,21 @@ StopPath
 - Is helpful for finding the distance of that path (defined in connections) since it groups the relevant path segments from Route together
 
 isTown
+- Places physically reasonable constraints on the connections relation
+- Ensures that the map of possible connections between stops is connected, undirected, irreflexive, and has all positive weights
 
 validRoutes
+- Ensures the subway routes generated are physically reasonable, i.e., their union is contained in the set of possible connections (note: this is equivalent to checking that each individual subway route is contained in the set of connections)
 
 isLine
+- Checks whether a given path (relation from Stop to Stop) is a valid subway line
+- Ensures that the path is undirected, connected, has endpoints, and has no branching
 
 isSubwaySystem
+- Checks that the map is a town (isTown)
+- Checks that the routes generated are valid (validRoutes) and that each route is a subway line (isLine)
+- Checks that any two stops are connected by the route paths
+- Checks that no subway line is contained in another line
 
 validStopPaths
 - Makes sure that all StopPaths are valid
