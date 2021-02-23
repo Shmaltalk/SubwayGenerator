@@ -56,3 +56,7 @@ validStopPaths
 maxDistance
 - Actually places the constraint that all stops must be within a certain travel distance
 - Checks that all pairs of stops have a valid StopPath with a distance less than the given maximum distance
+
+## On Testing
+
+Please see the code for descriptions of individual tests. Overall, we tested each individual predicate with positive (should pass) and negative (should fail) tests, then inculded some examples to confirm the system works as a whole.
