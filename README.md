@@ -59,4 +59,4 @@ maxDistance
 
 ## On Testing
 
-Please see the code for descriptions of individual tests. Overall, we tested each individual predicate with positive (should pass) and negative (should fail) tests, then inculded some examples to confirm the system works as a whole.
+Please see the code for descriptions of individual tests. Overall, we tested each individual predicate with positive (should pass) and negative (should fail) tests, then included some examples to confirm the system works as a whole.
