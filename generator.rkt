@@ -110,7 +110,7 @@ run {isSubwaySystem and validStopPaths and maxDistance[sing[15]]} for exactly 7 
 
 
 
-/*
+
 -- test town
 test expect {
     isConnected: isTown for {
@@ -523,15 +523,71 @@ example countDuplicateDistances2 is {validStopPaths and isTown} for {
 
 
 
+-- maxDistance
+test expect {
+    distTooFar: {isTown and maxDistance[sing[2]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1
+        connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5]
+    } is unsat
+    missingStopPath: {isTown and maxDistance[sing[5]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1
+        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1]
+
+        StopPath = SP0
+        stop1 = SP0->Stop0
+        stop2 = SP0->Stop1
+    } is unsat
+
+    -- one of allowable distance and one too long
+    somePathTooLong: {isTown and maxDistance[sing[2]]} for 10 StopPath for {
+        Stop = Stop0 -> Stop1 -> Stop2
+        connections = Stop0->Stop1->sing[5] + Stop1->Stop0->sing[5] + Stop0->Stop2->sing[1] + Stop2->Stop0->sing[1]
+    } is unsat
+}
+
 -- test all together
 
-test expect{
-    temp: {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for {
-        Stop = Stop0 + Stop1 + Stop2
-        connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
-                      Stop1->Stop2->sing[1] + Stop2->Stop1->sing[1]
+example emptyTown is {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 10 StopPath for {
+    Stop = none
+    connections = none->none->none
 
-        Route = Route0
-        path = Route0->Stop0->Stop1 + Route0->Stop1->Stop2 + Route0->Stop1->Stop0 + Route0->Stop2->Stop1
-    } is sat
-}*/
+    Route = none
+    path = none->none->none
+
+    StopPath = none
+    stop1 = none->none
+    stop2 = none->none
+    route = none->none->none
+    dist = none
+} 
+
+example singleStopTown is {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 10 StopPath for {
+    Stop = Stop0
+    connections = none->none->none
+
+    Route = none
+    path = none->none->none
+
+    StopPath = none
+    stop1 = none->none
+    stop2 = none->none
+    route = none->none->none
+    dist = none
+}
+
+example smallTown is {validStopPaths and isTown and isSubwaySystem and maxDistance[sing[10]]} for 10 StopPath for {
+    Stop = Stop0 + Stop1 + Stop2
+    connections = Stop0->Stop1->sing[1] + Stop1->Stop0->sing[1] + 
+                  Stop1->Stop2->sing[2] + Stop2->Stop1->sing[2] +
+                  Stop0->Stop2->sing[3] + Stop2->Stop0->sing[3]
+
+    Route = Route0
+    path = Route0->Stop0->Stop1 + Route0->Stop1->Stop0 + Route0->Stop1->Stop2 + Route0->Stop2->Stop1
+
+    StopPath = SP0 + SP1 + SP2 + SP3 + SP4 + SP5
+    stop1 = SP0->Stop0 + SP1->Stop0 + SP2->Stop1 + SP3->Stop1 + SP4->Stop2 + SP5->Stop2
+    stop2 = SP0->Stop1 + SP1->Stop2 + SP2->Stop0 + SP3->Stop2 + SP4->Stop0 + SP5->Stop1
+    route = SP0->Stop0->Stop1 + SP1->Stop0->Stop2 + SP2->Stop1->Stop0 + SP3->Stop1->Stop2 +
+            SP4->Stop2->Stop0 + SP5->Stop2->Stop1
+    dist = SP0->sing[1] + SP1->sing[3] + SP2->sing[1] + SP3->sing[2] + SP4->sing[3] + SP5->sing[2]
+}
