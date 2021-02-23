@@ -30,22 +30,29 @@ A subway system must...
 Stop
 - This defines the basic structure underlying a town and a subway system; what stops need to be reached
 - It holds a set of connections that are all other Stops that can be reached directly from the current Stop and how long it would take to travel between the current stop to each of those
+
 Route
 - This defines the path of a single subway line
 - It helps separate out all different lines included in the subway system
+
 StopPath
 - Defines a path between two stops by taking the proposed subway system
 - Is helpful for finding the distance of that path (defined in connections) since it groups the relevant path segments from Route together
 
 isTown
+
 validRoutes
+
 isLine
+
 isSubwaySystem
+
 validStopPaths
 - Makes sure that all StopPaths are valid
 - Ensures the start Stop can reach the end Stop by the given route segments
 - Sets dist to be the combined distance of all route segments
 - DOES NOT constrain the route to be linear. Since we are constraining a max distance between any two stops, extra line segments (even if they aren't exactly on the path) can't change a false check to a true one. (if <direct path dist> + <extra> is less than <max allowed dist> then <direct path dist> must be less than <max allowed dist>)
+
 maxDistance
 - Actually places the constraint that all stops must be within a certain travel distance
 - Checks that all pairs of stops have a valid StopPath with a distance less than the given maximum distance
